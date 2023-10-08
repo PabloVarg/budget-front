@@ -8,22 +8,21 @@ import {
   Select,
   Textarea,
 } from "@material-tailwind/react";
-import useMovements from "@/hooks/useMovements";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { getLocalDateString } from "@/utils/date";
 import { useMovementsContext } from "@/contexts/MovementContext";
 import { toast } from "react-toastify";
+import {
+  useCategories,
+  useCreateMovement,
+  useDeleteMovement,
+  useUpdateMovement,
+} from "@/services/movements";
 
 export default function MovementForm({ movement }: { movement?: Movement }) {
-  const refetch = useMovementsContext();
-  const { getCategories, createMovement, updateMovement, deleteMovement } =
-    useMovements();
+  const { refetch } = useMovementsContext();
 
-  const { data: categories, isSuccess } = useQuery({
-    queryKey: ["fetchCategories"],
-    queryFn: getCategories,
-  });
+  const { data: categories, isSuccess } = useCategories();
 
   const schema = yup.object({
     amount: yup.number().required("An amount is required"),
@@ -32,12 +31,6 @@ export default function MovementForm({ movement }: { movement?: Movement }) {
     description: yup.string(),
     category: yup.string().required("A category is required"),
   });
-
-  useEffect(() => {
-    console.log({
-      movement,
-    });
-  }, []);
 
   const {
     reset,
@@ -56,10 +49,6 @@ export default function MovementForm({ movement }: { movement?: Movement }) {
     },
   });
 
-  const formAction = movement?.id
-    ? updateMovement(movement.id)
-    : createMovement;
-
   const onSuccess = () => {
     reset();
     toast.success("Operation successful");
@@ -71,10 +60,24 @@ export default function MovementForm({ movement }: { movement?: Movement }) {
     toast.error("Error on operation");
   };
 
+  const { mutate: createMovement } = useCreateMovement(onSuccess, onError);
+  const { mutate: updateMovement } = useUpdateMovement(
+    onSuccess,
+    onError,
+    movement?.id ?? -1,
+  );
+  const { mutate: deleteMovement } = useDeleteMovement(
+    onSuccess,
+    onError,
+    movement?.id ?? -1,
+  );
+
+  const formAction = movement?.id ? updateMovement : createMovement;
+
   return (
     <div className="flex items-center justify-center w-full">
       <form
-        onSubmit={handleSubmit(formAction(onSuccess, onError))}
+        onSubmit={handleSubmit((movement) => formAction(movement))}
         className="w-full"
       >
         <div className="grid grid-cols-2 gap-5 mb-6 w-full">
@@ -171,7 +174,7 @@ export default function MovementForm({ movement }: { movement?: Movement }) {
               color="red"
               fullWidth
               type="button"
-              onClick={deleteMovement(movement.id)(onSuccess, onError)}
+              onClick={() => deleteMovement()}
             >
               Delete
             </Button>

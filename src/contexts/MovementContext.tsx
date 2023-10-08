@@ -1,6 +1,8 @@
 import React, { createContext, useContext } from "react";
 
-const MovementsContext = createContext(() => {});
+const MovementsContext = createContext({
+  refetch: () => {},
+});
 
 export const useMovementsContext = () => useContext(MovementsContext);
 
@@ -12,7 +14,7 @@ export default function MovementsProvider({
   children: React.ReactNode;
 }) {
   return (
-    <MovementsContext.Provider value={refetch}>
+    <MovementsContext.Provider value={{ refetch }}>
       {children}
     </MovementsContext.Provider>
   );

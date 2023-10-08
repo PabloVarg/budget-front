@@ -1,21 +1,15 @@
 "use client";
 
-import useMovements from "@/hooks/useMovements";
-import { useQuery } from "@tanstack/react-query";
 import { HashLoader } from "react-spinners";
 import MovementForm from "@/components/MovementForm";
 import Divider from "@/components/Divider";
 import Movement from "@/components/Movement";
 import { Typography } from "@material-tailwind/react";
 import MovementsProvider from "@/contexts/MovementContext";
+import { useMovements } from "@/services/movements";
 
 export default function Movements() {
-  const { getMovements } = useMovements();
-
-  const { data, isError, isLoading, refetch } = useQuery({
-    queryKey: ["fetchMovements"],
-    queryFn: getMovements,
-  });
+  const { data, isError, isLoading, refetch } = useMovements();
 
   return (
     <MovementsProvider refetch={refetch}>
